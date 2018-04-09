@@ -1,3 +1,5 @@
+#Mein eigener Code-Versuch
+
 import os
 import time
 import RPi.GPIO as GPIO
