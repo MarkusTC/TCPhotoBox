@@ -1,0 +1,2 @@
+mogrify -resize 968x648 *.jpg
+montage 4.jpg 3.jpg 2.jpg 1.jpg  -auto-orient -bordercolor Lavender -background black +polaroid -resize %80 -gravity center -background none  -background SkyBlue -geometry -10+2 -tile 2x2  polaroid_overlap.jpg
