@@ -1,16 +1,11 @@
 #!/usr/bin/python
 
+from PIL import Image
 import RPi.GPIO as GPIO, time, os, subprocess
 
-# GPIO setup
-GPIO.setmode(GPIO.BCM)
-SWITCH = 24
-GPIO.setup(SWITCH, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+cmd="display -resize 1000X800 -rotate -25 /home/pi/share/toPhoto/Jil_Portrait.jpg"
+p = subprocess.Popen("exec " + cmd, stdout=subprocess.PIPE, shell=True)
+time.sleep(10)
+p.kill()
 
-while True:
-    
-    #print("hello")
-    if (GPIO.input(SWITCH)==False):
-        print("SNAP")
-        time.sleep(0.5)
-
+print("fertig")
