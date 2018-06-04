@@ -18,13 +18,17 @@ GPIO.setup(PRINT_LED, GPIO.OUT)
 GPIO.output(BUTTON_LED, True)
 GPIO.output(PRINT_LED, False)
 
-picture_folder="/var/www/html/images/" #Ordner für die fertige Bilder
-picture_temp_folder=""
+picture_folder="images/" #Ordner für die fertige Bilder
+picture_folder_web="/var/www/html/images/" #Web-Ordner für die fertige Bilder
+picture_temp_folder="tmp/"
+
+printerid="Canon_CP800"
 
 def showImage(image,old):
   
   print(image + " anzeigen....")
-  cmd="display -resize 800X800 -rotate " + str(random.randint(-20,30)) + " " + image
+  #cmd="display -resize 800X800 -rotate " + str(random.randint(-20,30)) + " " + image
+  cmd="display -resize 1000X800 " + image
   p = subprocess.Popen("exec " + cmd, stdout=subprocess.PIPE, shell=True)
   
   if old is not None :
@@ -45,6 +49,10 @@ def enablePrinter():
   command="cupsenable Canon_CP800" 
   gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
 
+def minimizeImages(image):
+  command="mogrify -resize 864X648 " + image
+  gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+
 deletePrintJobs()
 
 p=None
@@ -57,58 +65,51 @@ while True:
         p=showImage("pose.jpg",None)
       else:
         p=showImage("pose.jpg",p)
-
-      #GPIO.output(BUTTON_LED, False)
-      #GPIO.output(POSE_LED, True)
-      #time.sleep(1.5)
-      #for i in range(5):
-      #  GPIO.output(POSE_LED, False)
-      #  time.sleep(0.4)
-      #  GPIO.output(POSE_LED, True)
-      #  time.sleep(0.4)
-      #for i in range(5):
-      #  GPIO.output(POSE_LED, False)
-      #  time.sleep(0.1)
-      #  GPIO.output(POSE_LED, True)
-      #  time.sleep(0.1)
-      #GPIO.output(POSE_LED, False)
+     
 
       time.sleep(8)
       p.kill()
-      print("SNAP")
 
-      command="gphoto2 --capture-image-and-download --force-overwrite --filename " + picture_temp_folder + "#NR#.jpg"
+      #Foto machen
+      print("SNAP")
+      src=picture_temp_folder + "#NR#.jpg".replace("#NR#" ,str(snap+1)) 
+      command="gphoto2 --capture-image-and-download --force-overwrite --filename " + src
       command=command.replace("#NR#" ,str(snap+1))
-      
       gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+
+      #... Original-Foto im Foto-Ordner sichern
+      dest=picture_folder + "#NR#_" + time.strftime('%H%M%S_%d%m%Y') + ".jpg"
+      dest=dest.replace("#NR#" ,str(snap+1))
+      
+      copyfile(src, dest)
+
+      #... Bild verkleinern
+      minimizeImages(src)
       
       #Bild anzeigen
-      p=showImage(picture_temp_folder + "#NR#.jpg".replace("#NR#" ,str(snap+1)),p)
+      p=showImage(src,p)
       
       print(gpout)
       #if "ERROR" not in gpout: 
       snap += 1
       GPIO.output(POSE_LED, False)
       time.sleep(15)
-
-    print("please wait while your photos print...")
-    #GPIO.output(PRINT_LED, True)
     
     # build image and send to printer
+    print("please wait while your photos print...")
     subprocess.call("bash tc_montage.sh", shell=True)
     
-    dest=picture_folder + "photobox_" + time.strftime('%H%M%S_%d%m%Y') + ".jpg"
     src="polaroid_overlap.jpg"
     
     #Bild anzeigen
     p.kill
     p=showImage(src,p)
-
+    #Bild zum Webserver kopieren
+    dest=picture_folder_web + "photobox_" + time.strftime('%H%M%S_%d%m%Y') + ".jpg"
     copyfile(src, dest)
-    # TODO: implement a reboot button
-    # Wait to ensure that print queue doesn't pile up
-    # TODO: check status of printer instead of using this arbitrary wait time
 
+    #Bild drucken
+    enablePrinter()
     command="lp -d Canon_CP800 "+dest
     subprocess.call(command, shell=True)
 
