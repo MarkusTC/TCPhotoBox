@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import RPi.GPIO as GPIO, time, os, subprocess
 import random
+import printer
 from shutil import copyfile
 
 # GPIO setup
@@ -18,42 +19,28 @@ GPIO.setup(PRINT_LED, GPIO.OUT)
 GPIO.output(BUTTON_LED, True)
 GPIO.output(PRINT_LED, False)
 
+##### Einstellungen ####
 picture_folder="images/" #Ordner für die fertige Bilder
 picture_folder_web="/var/www/html/images/" #Web-Ordner für die fertige Bilder
 picture_temp_folder="tmp/"
-
-printerid="Canon_CP800"
+printerID="Canon_CP800" #erster Drucker
+pause_snaps=5 #Wartepause zwischen den Fotos in Sekunden (8)
+##### Einstellungen ####
 
 def showImage(image,old):
   
   print(image + " anzeigen....")
   #cmd="display -resize 800X800 -rotate " + str(random.randint(-20,30)) + " " + image
-  cmd="display -resize 1000X800 " + image
+  cmd="display -resize 1270X1014 " + image
   p = subprocess.Popen("exec " + cmd, stdout=subprocess.PIPE, shell=True)
   
   if old is not None :
     old.kill()
   return p
 
-def deletePrintJobs():
-  proc = subprocess.Popen("lpstat",stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-  #myset=set(proc.stdout)
-  #print("Inahlt" + myset)
-  for x in proc.stdout : 
-    printID=x.split(" ")[0]
-    command="cancel " + printID
-    gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-    #print printID
-
-def enablePrinter():
-  command="cupsenable Canon_CP800" 
-  gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-
 def minimizeImages(image):
   command="mogrify -resize 864X648 " + image
   gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-
-deletePrintJobs()
 
 p=None
 while True:
@@ -67,7 +54,7 @@ while True:
         p=showImage("pose.jpg",p)
      
 
-      time.sleep(8)
+      time.sleep(pause_snaps)
       p.kill()
 
       #Foto machen
@@ -92,8 +79,8 @@ while True:
       print(gpout)
       #if "ERROR" not in gpout: 
       snap += 1
-      GPIO.output(POSE_LED, False)
-      time.sleep(15)
+      #GPIO.output(POSE_LED, False)
+      time.sleep(pause_snaps)
     
     # build image and send to printer
     print("please wait while your photos print...")
@@ -107,13 +94,17 @@ while True:
     #Bild zum Webserver kopieren
     dest=picture_folder_web + "photobox_" + time.strftime('%H%M%S_%d%m%Y') + ".jpg"
     copyfile(src, dest)
-
+    #ToDo: Wartebild anzeigen
+    
     #Bild drucken
-    enablePrinter()
-    command="lp -d Canon_CP800 "+dest
-    subprocess.call(command, shell=True)
+    if not printer.printFile(printerID,dest):
+      printer.printerID=printer.getNextPrinterID(printerID)
+      printer.printFile(printerID,dest)
 
-    time.sleep(1)
+    #time.sleep(1)
     print("ready for next round")
-    GPIO.output(PRINT_LED, False)
-    GPIO.output(BUTTON_LED, True)
+    src="next.jpg"
+    p.kill
+    p=showImage(src,p)
+    #GPIO.output(PRINT_LED, False)
+    #GPIO.output(BUTTON_LED, True)

@@ -3,8 +3,6 @@
 from PIL import Image
 import RPi.GPIO as GPIO, time, os, subprocess
 
-
-
 def getActivePrinterID():
     command="lpstat" 
     #proc = subprocess.Popen(command, stderr=subprocess.STDOUT, shell=True)
@@ -54,8 +52,3 @@ def getNextPrinterID(printerID):
     else:
         return "Canon_CP800"
 
-printerID="Canon_CP800"
-
-if not printFile(printerID,"/home/pi/share/Jil.jpg"):
-    printerID=getNextPrinterID(printerID)
-    printFile(printerID,"/home/pi/share/Jil.jpg")
