@@ -8,6 +8,8 @@ def getActivePrinterID():
     #proc = subprocess.Popen(command, stderr=subprocess.STDOUT, shell=True)
     proc = subprocess.Popen(["lpstat","-p"],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     for x in proc.stdout : 
+        x=x.decode("utf-8") 
+        
         if x.split(" ")[0]=="printer":
             iD=x.split(" ")[1]
             command="cupsenable " + iD 
@@ -17,7 +19,9 @@ def getActivePrinterID():
 
 def resetPrinterJob():
     proc = subprocess.Popen("lpstat",stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    for x in proc.stdout : 
+    for x in proc.stdout :
+        x=x.decode("utf-8") 
+        #print (x)
         printID=x.split(" ")[0]
         command="cancel " + printID
         gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
@@ -25,6 +29,8 @@ def resetPrinterJob():
 def printerStatus(printerID):
     proc = subprocess.Popen(["lpstat","-p",printerID],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     for x in proc.stdout : 
+        x=x.decode("utf-8") 
+        
         print(x)
         if "disabled" in x:
              return False
@@ -41,6 +47,7 @@ def printFile(printerId,file):
     
     proc = subprocess.Popen(["lp","-d",printerId,file],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     for x in proc.stdout : 
+        x=x.decode("utf-8") 
         print(x.split(" ")[3])
     #Status abfragen
     time.sleep(10)

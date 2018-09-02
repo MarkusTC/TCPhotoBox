@@ -4,6 +4,12 @@ import random
 import printer
 from shutil import copyfile
 
+#test
+strtest="test hello"
+printid=strtest.split(" ")[1]
+print(printid)
+printer.resetPrinterJob()
+
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
 SWITCH = 24
@@ -24,8 +30,10 @@ picture_folder="images/" #Ordner für die fertige Bilder
 picture_folder_web="/var/www/html/images/" #Web-Ordner für die fertige Bilder
 picture_temp_folder="tmp/"
 printerID="Canon_CP800" #erster Drucker
-pause_snaps=5 #Wartepause zwischen den Fotos in Sekunden (8)
+pause_snaps=2 #Wartepause zwischen den Fotos in Sekunden (8,5)
 ##### Einstellungen ####
+
+
 
 def showImage(image,old):
   
@@ -92,13 +100,13 @@ while True:
     p.kill
     p=showImage(src,p)
     #Bild zum Webserver kopieren
-    dest=picture_folder_web + "photobox_" + time.strftime('%H%M%S_%d%m%Y') + ".jpg"
+    dest=picture_folder_web + "photobox_" + time.strftime('%Y%m%d_%H%M%S') + ".jpg"
     copyfile(src, dest)
     #ToDo: Wartebild anzeigen
     
     #Bild drucken
     if not printer.printFile(printerID,dest):
-      printer.printerID=printer.getNextPrinterID(printerID)
+      printerID=printer.getNextPrinterID(printerID)
       printer.printFile(printerID,dest)
 
     #time.sleep(1)
