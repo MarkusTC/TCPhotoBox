@@ -61,16 +61,17 @@ while True:
       else:
         p=showImage("pose.jpg",p)
      
-
       time.sleep(pause_snaps)
-      p.kill()
-
+      
       #Foto machen
       print("SNAP")
       src=picture_temp_folder + "#NR#.jpg".replace("#NR#" ,str(snap+1)) 
       command="gphoto2 --capture-image-and-download --force-overwrite --filename " + src
       command=command.replace("#NR#" ,str(snap+1))
       gpout = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+
+      #Pose-Bild ausblenden
+      p.kill()
 
       #... Original-Foto im Foto-Ordner sichern
       dest=picture_folder + "#NR#_" + time.strftime('%H%M%S_%d%m%Y') + ".jpg"
