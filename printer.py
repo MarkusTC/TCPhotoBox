@@ -3,6 +3,8 @@
 from PIL import Image
 import RPi.GPIO as GPIO, time, os, subprocess
 
+logfile="/var/www/html/printerlog.dat"
+
 def getActivePrinterID():
     command="lpstat" 
     #proc = subprocess.Popen(command, stderr=subprocess.STDOUT, shell=True)
@@ -48,17 +50,32 @@ def printerStatus2(printerID):
             x=x.decode("utf-8") 
             print(x)
             if "Paper feed problem" in x:
-                print ("Papier leer")
+                log (str(printerID) + " Papier leer")
                 return False
             elif "Ribbon depleted" in x:
-                print("Farbkatusche leer")
+                log(str(printerID) + " Farbkatusche leer")
                 return False
             elif "disabled" in x:
-                 print("ausgeschaltet")
+                 log(str(printerID) + " ausgeschaltet")
                  return False
+            elif "No paper tray loaded" in x:
+                 log(str(printerID) + " Papierkassette fehlt")
+                 return False
+            
             elif "idle" in x:
                 print("fertig")
                 return True
+
+def resetLog():
+    file=open(logfile,"w")
+    file.write("")
+    file.close()
+    
+def log(msg):
+    print(msg)
+    file=open(logfile,"a")
+    file.write(msg + ";")
+    file.close()
                 
 def printFile(printerId,file):
     print("Druck auf " + printerId)
